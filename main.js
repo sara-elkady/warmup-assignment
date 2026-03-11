@@ -191,5 +191,68 @@ function setBonus(textFile, driverID, date, newValue) {
     fs.writeFileSync(textFile, lines.join('\n'));
 }
 
+// ============================================================
+// Function 7: countBonusPerMonth(textFile, driverID, month)
+// textFile: (typeof string) path to shifts text file
+// driverID: (typeof string)
+// month: (typeof string) formatted as mm or m
+// Returns: number (-1 if driverID not found)
+// ============================================================
+function countBonusPerMonth(textFile, driverID, month) {
+ 
+        const content = fs.readFileSync(textFile, 'utf8');
+    const lines = content.split('\n').filter(function(line) { return line.trim() !== ''; });
+
+    let driverExists = false;
+    let count = 0;
+    const targetMonth = parseInt(month);
+
+    for (let i = 0; i < lines.length; i++) {
+        const cols = lines[i].split(',');
+        if (cols[0].trim() === driverID) {
+            driverExists = true;
+            const dateCols = cols[2].trim().split('-');
+            const recordMonth = parseInt(dateCols[1]);
+            if (recordMonth === targetMonth && cols[9].trim() === 'true') {
+                count++;
+            }
+        }
+    }
+
+    if (!driverExists) return -1;
+    return count;
+}
+
+// ============================================================
+// Function 8: getTotalActiveHoursPerMonth(textFile, driverID, month)
+// textFile: (typeof string) path to shifts text file
+// driverID: (typeof string)
+// month: (typeof number)
+// Returns: string formatted as hhh:mm:ss
+// ============================================================
+function getTotalActiveHoursPerMonth(textFile, driverID, month) {
+ 
+    const content = fs.readFileSync(textFile, 'utf8');
+    const lines = content.split('\n').filter(function(line) { return line.trim() !== ''; });
+
+    let totalSeconds = 0;
+
+    for (let i = 0; i < lines.length; i++) {
+        const cols = lines[i].split(',');
+        if (cols[0].trim() === driverID) {
+            const dateCols = cols[2].trim().split('-');
+            const recordMonth = parseInt(dateCols[1]);
+            if (recordMonth === month) {
+                totalSeconds += durToSec(cols[7].trim());
+            }
+        }
+    }
+
+    const h = Math.floor(totalSeconds / 3600);
+    const m = Math.floor((totalSeconds % 3600) / 60);
+    const s = totalSeconds % 60;
+    return h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
 
 

@@ -107,4 +107,89 @@ function metQuota(date, activeTime) {
     return active >= quota;
 }
 
+// ============================================================
+// Function 5: addShiftRecord(textFile, shiftObj)
+// textFile: (typeof string) path to shifts text file
+// shiftObj: (typeof object) has driverID, driverName, date, startTime, endTime
+// Returns: object with 10 properties or empty object {}
+// ============================================================
+function addShiftRecord(textFile, shiftObj) {
+ 
+        const content = fs.readFileSync(textFile, 'utf8');
+    const lines = content.split('\n').filter(function(line) { return line.trim() !== ''; });
+
+    for (let i = 0; i < lines.length; i++) {
+        const cols = lines[i].split(',');
+        if (cols[0].trim() === shiftObj.driverID && cols[2].trim() === shiftObj.date) {
+            return {};
+        }
+    }
+
+    const shiftDuration = getShiftDuration(shiftObj.startTime, shiftObj.endTime);
+    const idleTime = getIdleTime(shiftObj.startTime, shiftObj.endTime);
+    const activeTime = getActiveTime(shiftDuration, idleTime);
+    const quota = metQuota(shiftObj.date, activeTime);
+
+    const newRecord = {
+        driverID: shiftObj.driverID,
+        driverName: shiftObj.driverName,
+        date: shiftObj.date,
+        startTime: shiftObj.startTime,
+        endTime: shiftObj.endTime,
+        shiftDuration: shiftDuration,
+        idleTime: idleTime,
+        activeTime: activeTime,
+        metQuota: quota,
+        hasBonus: false
+    };
+
+    const newLine = newRecord.driverID + ',' + newRecord.driverName + ',' + newRecord.date + ',' +
+        newRecord.startTime + ',' + newRecord.endTime + ',' + newRecord.shiftDuration + ',' +
+        newRecord.idleTime + ',' + newRecord.activeTime + ',' + newRecord.metQuota + ',' + newRecord.hasBonus;
+
+    let lastIndex = -1;
+    for (let i = 0; i < lines.length; i++) {
+        const cols = lines[i].split(',');
+        if (cols[0].trim() === shiftObj.driverID) {
+            lastIndex = i;
+        }
+    }
+
+    if (lastIndex === -1) {
+        lines.push(newLine);
+    } else {
+        lines.splice(lastIndex + 1, 0, newLine);
+    }
+
+    fs.writeFileSync(textFile, lines.join('\n') + '\n');
+
+    return newRecord;
+}
+
+// ============================================================
+// Function 6: setBonus(textFile, driverID, date, newValue)
+// textFile: (typeof string) path to shifts text file
+// driverID: (typeof string)
+// date: (typeof string) formatted as yyyy-mm-dd
+// newValue: (typeof boolean)
+// Returns: nothing (void)
+// ============================================================
+function setBonus(textFile, driverID, date, newValue) {
+ 
+        const content = fs.readFileSync(textFile, 'utf8');
+    const lines = content.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+        const cols = lines[i].split(',');
+        if (cols[0].trim() === driverID && cols[2].trim() === date) {
+            cols[9] = String(newValue);
+            lines[i] = cols.join(',');
+            break;
+        }
+    }
+
+    fs.writeFileSync(textFile, lines.join('\n'));
+}
+
+
 

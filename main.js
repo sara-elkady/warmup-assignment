@@ -70,3 +70,41 @@ function getIdleTime(startTime, endTime) {
 
 }
 
+// ============================================================
+// Function 3: getActiveTime(shiftDuration, idleTime)
+// shiftDuration: (typeof string) formatted as h:mm:ss
+// idleTime: (typeof string) formatted as h:mm:ss
+// Returns: string formatted as h:mm:ss
+// ============================================================
+function getActiveTime(shiftDuration, idleTime) {
+     
+        const shift = durToSec(shiftDuration);
+    const idle = durToSec(idleTime);
+    return secToStr(shift - idle);
+}
+
+// ============================================================
+// Function 4: metQuota(date, activeTime)
+// date: (typeof string) formatted as yyyy-mm-dd
+// activeTime: (typeof string) formatted as h:mm:ss
+// Returns: boolean
+// ============================================================
+function metQuota(date, activeTime) {
+     
+        const active = durToSec(activeTime);
+    const parts = date.split('-');
+    const year = parseInt(parts[0]);
+    const month = parseInt(parts[1]);
+    const day = parseInt(parts[2]);
+
+    let quota;
+    if (year === 2025 && month === 4 && day >= 10 && day <= 30) {
+        quota = 6 * 3600;
+    } else {
+        quota = 8 * 3600 + 24 * 60;
+    }
+
+    return active >= quota;
+}
+
+
